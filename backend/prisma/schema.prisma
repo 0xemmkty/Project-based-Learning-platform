@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String
+  role          Role      @default(USER)
+  institution   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  projects      Project[] @relation("CreatedProjects")
+  collaborating Project[] @relation("ProjectCollaborators")
+
+  @@map("users")
+}
+
+model Project {
+  id           String    @id @default(cuid())
+  title        String
+  description  String
+  institution  String
+  projectType  ProjectType
+  skillLevel   SkillLevel
+  creatorId    String
+  creator      User      @relation("CreatedProjects", fields: [creatorId], references: [id])
+  collaborators User[]   @relation("ProjectCollaborators")
+  tags         Tag[]
+  media        Media[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("projects")
+}
+
+model Tag {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  projects Project[]
+
+  @@map("tags")
+}
+
+model Media {
+  id        String    @id @default(cuid())
+  type      MediaType
+  url       String
+  key       String?
+  projectId String
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+
+  @@map("media")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ProjectType {
+  ENTREPRENEURSHIP
+  INNOVATION
+  PRODUCT_DEVELOPMENT
+}
+
+enum SkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum MediaType {
+  IMAGE
+  DOCUMENT
+  VIDEO
+} 
