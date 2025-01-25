@@ -7,16 +7,15 @@ const userRoutes = require('./routes/userRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 
 const app = express();
-
 // Middleware
 app.use(cors());
 app.use(express.json());
-
+app.use(express.static('public'));
+console.log("enter into app.js")
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/projects', projectRoutes);
-
 // Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);

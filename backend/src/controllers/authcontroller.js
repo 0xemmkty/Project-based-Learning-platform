@@ -6,26 +6,28 @@ const { jwtSecret, jwtExpiration } = require('../config/auth');
 
 const register = async (req, res) => {
   try {
-    const { email, password, name, institution } = req.body;
-
+    const { email, password, name } = req.body;
+    console.log(email+" ,"+password+","+name);
     // Validate input
-    if (!validateEmail(email)) {
-      return res.status(400).json({ error: 'Invalid email format' });
-    }
 
-    if (!validatePassword(password)) {
-      return res.status(400).json({ error: 'Password must be at least 8 characters' });
-    }
+    if(!validateEmail(email)) {
+      return res.status(400).json({ error: 'Email is not validate!' });
+    };
+    console.log("---------------------");
 
+    if(!validatePassword(password)) {
+      return res.status(400).json({ error: 'Password is at lest 8 char!' });
+    };
     // Check if user exists
+    console.log("------------"+email);
     const existingUser = await prisma.user.findUnique({
       where: { email }
     });
-
+    //console.log("existingUser = "+existingUser.email);
     if (existingUser) {
       return res.status(400).json({ error: 'Email already registered' });
     }
-
+    console.log("-------------Email is OK!------------");
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -34,8 +36,7 @@ const register = async (req, res) => {
       data: {
         email,
         password: hashedPassword,
-        name,
-        institution
+        name
       },
       select: {
         id: true,
@@ -45,14 +46,14 @@ const register = async (req, res) => {
         institution: true
       }
     });
-
+    console.log("---------------create OK!-----------")
     // Generate token
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       jwtSecret,
       { expiresIn: jwtExpiration }
     );
-
+    
     res.status(201).json({
       user,
       token
@@ -67,19 +68,33 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ error: {email, password} });
+    }
+
     // Find user
     const user = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        institution: true,
+        password: true
+      }
     });
-
+    console.log(user);
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-
+    console.log(password);
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.password);
-
+    console.log(isValidPassword);
     if (!isValidPassword) {
+      console.log("password is bad");
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 

@@ -15,6 +15,7 @@ function LoginPage() {
     email: '',
     password: ''
   });
+
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -31,13 +32,20 @@ function LoginPage() {
     setLoading(true);
 
     try {
+
       const response = await authAPI.login(formData);
-      // 保存token
-      localStorage.setItem('token', response.data.token);
+      
+      //if (!response.data || !response.data.token) {
+      //  throw new Error('Token not found in response');
+      //}
+      
+      localStorage.setItem('token', response.token);
       // 登录成功后跳转
-      navigate('/dashboard');
+      navigate('/index');
     } catch (err) {
+  
       setError(err.response?.data?.message || 'Login failed. Please try again.');
+      //setError(formData.password);
     } finally {
       setLoading(false);
     }

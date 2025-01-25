@@ -7,16 +7,26 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProjectGallery from './pages/ProjectGallery';
+import Index from './pages/index';
 import ProjectDetail from './pages/ProjectDetail';
 import ProjectEdit from './pages/ProjectEdit';
 import ProjectCreate from './pages/ProjectCreate';
+import ProjectBrowser from './pages/ProjectBrowser';
+import WebFont from 'webfontloader';
 import NotFound from './pages/NotFound';
 import './styles/global.css';
 
+WebFont.load({
+  google: {
+    families: ['Roboto:400,500,700']
+  }
+});
+
 const theme = createTheme();
+
 function NavbarWrapper() {
   const location = useLocation();
-  // 在首页不显示导航栏
+  // Hide Navbar on the landing page
   if (location.pathname === '/') {
     return null;
   }
@@ -27,7 +37,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<div>Loading Gallery...</div>}>
         <Router>
           <Navbar />
           <Routes>
@@ -38,6 +48,8 @@ function App() {
             <Route path="/projects/create" element={<ProjectCreate />} />
             <Route path="/projects/:id" element={<ProjectDetail />} />
             <Route path="/projects/:id/edit" element={<ProjectEdit />} />
+            <Route path="/projects/browser" element={<ProjectBrowser />} />
+            <Route path="/index" element={<Index />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>

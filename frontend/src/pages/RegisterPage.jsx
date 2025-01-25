@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authAPI } from '../services/api';
 
 function RegisterPage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    username: '',
+    name: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -29,9 +30,11 @@ function RegisterPage() {
       return;
     }
 
+
     try {
-      // TODO: Implement actual registration API call here
-      console.log('Registration data:', formData);
+      console.log("handlesubmit-----------------")
+      const response = await authAPI.register(formData);
+      console.log('Registration data:', response.data);
       // On successful registration, redirect to login
       navigate('/login');
     } catch (err) {
@@ -46,12 +49,12 @@ function RegisterPage() {
         {error && <div className="error-message">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="name">Username</label>
             <input
               type="text"
-              id="username"
-              name="username"
-              value={formData.username}
+              id="name"
+              name="name"
+              value={formData.name}
               onChange={handleChange}
               required
             />

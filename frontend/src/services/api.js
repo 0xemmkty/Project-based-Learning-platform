@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8080/api'; // 后端API地址
+const API_URL = 'http://localhost:5000/api'; // 后端API地址
 
 const api = axios.create({
   baseURL: API_URL,
@@ -24,14 +24,30 @@ api.interceptors.request.use(
 );
 
 export const authAPI = {
-  login: (credentials) => api.post('/auth/login', credentials),
+  
+  login: async (credentials) => {
+    console.log('Sending login credentials:', credentials);
+    //credentials.email = 'alice@example.com';
+    //credentials.password = 'password123';
+    try {
+      const response = await api.post('/auth/login', credentials);
+      return response.data;
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
+  },
   register: (userData) => api.post('/auth/register', userData),
   logout: () => api.post('/auth/logout')
 };
+
+
+
 
 export const userAPI = {
   getCurrentUser: () => api.get('/users/me'),
   updateProfile: (userData) => api.put('/users/profile', userData)
 };
+
 
 export default api; 
