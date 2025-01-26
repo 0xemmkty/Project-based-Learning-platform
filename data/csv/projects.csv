@@ -1,0 +1,9 @@
+id,title,description,institution,projectType,skillLevel,status,creatorId,createdAt,updatedAt
+1,Eclipse,Flashing light-blocking glasses,MIT,INNOVATION,INTERMEDIATE,active,1,2025-01-26T14:00:00,2025-01-26T14:00:00
+2,Escalate,Curb-climbing wheelchair attachment,MIT,PRODUCT_DEVELOPMENT,ADVANCED,active,1,2025-01-26T14:00:00,2025-01-26T14:00:00
+3,Vulcan,Handheld portable wire solderer,MIT,INNOVATION,BEGINNER,active,2,2025-01-26T14:00:00,2025-01-26T14:00:00
+4,Dextra,Modular prosthetic hand attachments,MIT,PRODUCT_DEVELOPMENT,ADVANCED,active,1,2025-01-26T14:00:00,2025-01-26T14:00:00
+5,deltaTherapy,Flexible heating/cooling bandage,MIT,INNOVATION,INTERMEDIATE,active,2,2025-01-26T14:00:00,2025-01-26T14:00:00
+6,ReVise,Conformable vise,MIT,PRODUCT_DEVELOPMENT,BEGINNER,active,3,2025-01-26T14:00:00,2025-01-26T14:00:00
+7,Aisle Assist,Airplane aisle wheelchair,MIT,INNOVATION,INTERMEDIATE,active,1,2025-01-26T14:00:00,2025-01-26T14:00:00
+8,Palette,Portable paint-tinting device,MIT,PRODUCT_DEVELOPMENT,ADVANCED,active,3,2025-01-26T14:00:00,2025-01-26T14:00:00

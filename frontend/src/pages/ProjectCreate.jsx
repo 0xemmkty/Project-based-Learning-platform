@@ -134,16 +134,16 @@ export function ProjectCreate() {
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom>
+    <Container maxWidth="sm" sx={{ py: 4 }}>
+      <Paper elevation={3} sx={{ p: 3 }}>
+        <Typography variant="h5" gutterBottom sx={{ mb: 2 }}>
           Create New Project
         </Typography>
 
         <form onSubmit={handleSubmit}>
-          <Stack spacing={3}>
+          <Stack spacing={2}>
             {error && (
-              <Typography color="error">
+              <Typography color="error" variant="body2">
                 {error}
               </Typography>
             )}
@@ -155,6 +155,7 @@ export function ProjectCreate() {
               value={formData.title}
               onChange={handleChange}
               fullWidth
+              size="small"
             />
 
             <TextField
@@ -164,11 +165,12 @@ export function ProjectCreate() {
               value={formData.description}
               onChange={handleChange}
               multiline
-              rows={4}
+              rows={3}
               fullWidth
+              size="small"
             />
 
-            <FormControl fullWidth required>
+            <FormControl fullWidth required size="small">
               <InputLabel>Institution</InputLabel>
               <Select
                 name="institution"
@@ -182,7 +184,7 @@ export function ProjectCreate() {
               </Select>
             </FormControl>
 
-            <FormControl fullWidth required>
+            <FormControl fullWidth required size="small">
               <InputLabel>Project Type</InputLabel>
               <Select
                 name="projectType"
@@ -196,7 +198,7 @@ export function ProjectCreate() {
               </Select>
             </FormControl>
 
-            <FormControl fullWidth required>
+            <FormControl fullWidth required size="small">
               <InputLabel>Skill Level</InputLabel>
               <Select
                 name="skillLevel"
@@ -217,14 +219,16 @@ export function ProjectCreate() {
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyPress={handleTagInputKeyPress}
                 fullWidth
+                size="small"
                 helperText="Press Enter to add a tag"
               />
-              <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                 {formData.tags.map((tag, index) => (
                   <Chip
                     key={index}
                     label={tag}
                     onDelete={() => handleDeleteTag(tag)}
+                    size="small"
                   />
                 ))}
               </Box>
@@ -232,9 +236,10 @@ export function ProjectCreate() {
 
             <Box>
               <Button
-                variant="contained"
+                variant="outlined"
                 component="label"
                 startIcon={<CloudUploadIcon />}
+                size="small"
               >
                 Upload Files
                 <input
@@ -253,6 +258,7 @@ export function ProjectCreate() {
                       const newFiles = formData.mediaFiles.filter((_, i) => i !== index);
                       setFormData({ ...formData, mediaFiles: newFiles });
                     }}
+                    size="small"
                     sx={{ m: 0.5 }}
                   />
                 ))}
@@ -260,18 +266,20 @@ export function ProjectCreate() {
             </Box>
 
             <Box>
-              <Typography variant="subtitle1" gutterBottom>
+              <Typography variant="body2" gutterBottom>
                 Related Links
               </Typography>
               {formData.relatedLinks.map((link, index) => (
-                <Stack direction="row" spacing={2} key={index} sx={{ mb: 2 }}>
+                <Stack direction="row" spacing={1} key={index} sx={{ mb: 1 }}>
                   <TextField
                     fullWidth
+                    size="small"
                     label={`Link ${index + 1}`}
                     value={link}
                     onChange={(e) => handleLinkChange(index, e.target.value)}
                   />
                   <IconButton 
+                    size="small"
                     color="error" 
                     onClick={() => {
                       const newLinks = formData.relatedLinks.filter((_, i) => i !== index);
@@ -282,17 +290,21 @@ export function ProjectCreate() {
                   </IconButton>
                 </Stack>
               ))}
-              <Button variant="outlined" onClick={handleAddLink}>
+              <Button 
+                variant="text" 
+                onClick={handleAddLink}
+                size="small"
+              >
                 Add Link
               </Button>
             </Box>
 
-            <Box sx={{ mt: 4 }}>
+            <Box sx={{ mt: 2 }}>
               <Button
                 type="submit"
                 variant="contained"
                 color="primary"
-                size="large"
+                fullWidth
               >
                 Create Project
               </Button>

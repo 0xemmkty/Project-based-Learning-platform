@@ -37,49 +37,72 @@ const skillLevels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
 function ProjectEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
+  const [project, setProject] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    content: '',
     institution: '',
     projectType: '',
     skillLevel: '',
     tags: [],
     relatedLinks: [],
-    mediaFiles: [],
+    files: [],
     existingMedia: []
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [newImages, setNewImages] = useState([]);
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const [existingMedia, setExistingMedia] = useState([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  // 获取项目数据
-  useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        const response = await api.get(`/projects/${id}`);
-        const project = response.data;
-        setFormData({
-          title: project.title || '',
-          description: project.description || '',
-          institution: project.institution || '',
-          projectType: project.projectType || '',
-          skillLevel: project.skillLevel || '',
-          tags: project.tags || [],
-          relatedLinks: project.relatedLinks || [],
-          mediaFiles: [],
-          existingMedia: project.media || []
-        });
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to load project');
-        setLoading(false);
+  const fetchProject = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log('Fetching project with ID:', id);
+      const response = await api.get(`/projects/${id}`);
+      console.log('Project response:', response.data);
+      
+      if (!response.data) {
+        throw new Error('No project data received');
       }
-    };
+
+      setProject(response.data);
+      setExistingMedia(response.data.media || []);
+      setFormData({
+        title: response.data.title || '',
+        description: response.data.description || '',
+        content: response.data.content || '',
+        institution: response.data.institution || '',
+        projectType: response.data.projectType || '',
+        skillLevel: response.data.skillLevel || '',
+        tags: response.data.tags?.map(tag => tag.name) || [],
+        relatedLinks: response.data.relatedLinks || [],
+        files: [],
+        existingMedia: response.data.media || []
+      });
+
+      console.log('Project loaded successfully');
+      
+    } catch (err) {
+      console.error('Error fetching project:', {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data
+      });
+      setError(err.response?.data?.message || 'Failed to load project');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchProject();
   }, [id]);
 
-  // 处理表单变化
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -88,7 +111,6 @@ function ProjectEdit() {
     }));
   };
 
-  // 处理标签
   const handleTagAdd = (event) => {
     if (event.key === 'Enter' && event.target.value) {
       const newTag = event.target.value.trim();
@@ -109,7 +131,6 @@ function ProjectEdit() {
     }));
   };
 
-  // 处理相关链接
   const handleLinkAdd = () => {
     setFormData(prev => ({
       ...prev,
@@ -133,30 +154,37 @@ function ProjectEdit() {
     }));
   };
 
-  // 处理媒体文件
   const handleFileUpload = (event) => {
     const files = Array.from(event.target.files);
     setFormData(prev => ({
       ...prev,
-      mediaFiles: [...prev.mediaFiles, ...files]
+      files: [...prev.files, ...files]
     }));
   };
 
-  const handleExistingMediaDelete = (mediaId) => {
-    setFormData(prev => ({
-      ...prev,
-      existingMedia: prev.existingMedia.filter(media => media.id !== mediaId)
-    }));
+  const handleExistingMediaDelete = async (mediaId) => {
+    try {
+      await api.delete(`/projects/${id}/image/${mediaId}`);
+      
+      setExistingMedia(prevMedia => 
+        prevMedia.filter(media => media.id !== mediaId)
+      );
+      
+      console.log('Media deleted successfully:', mediaId);
+      
+    } catch (err) {
+      console.error('Error deleting media:', err);
+      alert(err.response?.data?.message || 'Failed to delete media');
+    }
   };
 
   const handleNewMediaDelete = (index) => {
     setFormData(prev => ({
       ...prev,
-      mediaFiles: prev.mediaFiles.filter((_, i) => i !== index)
+      files: prev.files.filter((_, i) => i !== index)
     }));
   };
 
-  // 提交表单
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -170,8 +198,8 @@ function ProjectEdit() {
       formDataToSend.append('relatedLinks', JSON.stringify(formData.relatedLinks));
       formDataToSend.append('existingMedia', JSON.stringify(formData.existingMedia));
 
-      formData.mediaFiles.forEach(file => {
-        formDataToSend.append('mediaFiles', file);
+      formData.files.forEach(file => {
+        formDataToSend.append('files', file);
       });
 
       await api.put(`/projects/${id}`, formDataToSend, {
@@ -186,7 +214,6 @@ function ProjectEdit() {
     }
   };
 
-  // 删除项目
   const handleDelete = async () => {
     try {
       await api.delete(`/projects/${id}`);
@@ -207,7 +234,6 @@ function ProjectEdit() {
           Edit Project
         </Typography>
 
-        {/* 基本信息 */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
           <Grid item xs={12}>
             <TextField
@@ -281,7 +307,6 @@ function ProjectEdit() {
           </Grid>
         </Grid>
 
-        {/* 标签 */}
         <Box sx={{ mb: 3 }}>
           <Typography variant="h6" gutterBottom>
             Tags
@@ -303,7 +328,6 @@ function ProjectEdit() {
           />
         </Box>
 
-        {/* 相关链接 */}
         <Box sx={{ mb: 3 }}>
           <Typography variant="h6" gutterBottom>
             Related Links
@@ -333,14 +357,13 @@ function ProjectEdit() {
           </Button>
         </Box>
 
-        {/* 现有媒体文件 */}
-        {formData.existingMedia.length > 0 && (
+        {existingMedia.length > 0 && (
           <Box sx={{ mb: 3 }}>
             <Typography variant="h6" gutterBottom>
               Existing Media
             </Typography>
             <Grid container spacing={2}>
-              {formData.existingMedia.map((media) => (
+              {existingMedia.map((media) => (
                 <Grid item xs={12} sm={6} md={4} key={media.id}>
                   <Card>
                     {media.type === 'IMAGE' ? (
@@ -371,7 +394,6 @@ function ProjectEdit() {
           </Box>
         )}
 
-        {/* 新媒体文件上传 */}
         <Box sx={{ mb: 3 }}>
           <Typography variant="h6" gutterBottom>
             Add New Media
@@ -390,7 +412,7 @@ function ProjectEdit() {
             />
           </Button>
           <Grid container spacing={2} sx={{ mt: 2 }}>
-            {formData.mediaFiles.map((file, index) => (
+            {formData.files.map((file, index) => (
               <Grid item xs={12} sm={6} md={4} key={index}>
                 <Card>
                   <CardContent>
@@ -409,7 +431,6 @@ function ProjectEdit() {
           </Grid>
         </Box>
 
-        {/* 操作按钮 */}
         <Stack direction="row" spacing={2} justifyContent="space-between">
           <Button
             color="error"
@@ -439,7 +460,6 @@ function ProjectEdit() {
         </Stack>
       </Paper>
 
-      {/* 删除确认对话框 */}
       <Dialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}

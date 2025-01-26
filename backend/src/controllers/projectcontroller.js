@@ -1,7 +1,9 @@
 const prisma = require('../lib/prisma');
 const { uploadToS3, deleteFromS3 } = require('../services/awsService');
 const multer = require('multer');
-const upload = multer();
+//const upload = multer();
+const upload = multer().fields([{ name: 'files', maxCount: 5 }]);  // 配置文件上传字段名
+
 require('dotenv').config();
 
 const parseTags = (tags) => {
@@ -185,14 +187,17 @@ const updateProject = async (req, res) => {
     const { id } = req.params;
     const { title, description, institution, projectType, skillLevel, tags } = req.body;
     const userId = req.user.id;
-
+    if (userId == null) {
+      return res.status(401).json({ error: 'UserId is null or not found' });
+    }
+    console.log("-------updateProject--------"+userId);
     const existingProject = await prisma.project.findFirst({
       where: {
         id,
         creatorId: userId
       }
     });
-
+    console.log("-------existingProject--------"+existingProject);
     if (!existingProject) {
       return res.status(404).json({ error: 'Project not found or unauthorized' });
     }
@@ -201,14 +206,12 @@ const updateProject = async (req, res) => {
     if (req.files && req.files.length > 0) {
       mediaFiles = await Promise.all(
         req.files.map(async (file) => {
-        
-          const { url, key } = await uploadToS3(file, 'projects');
-
+          const result = await uploadToS3(file);
           return {
             type: file.mimetype.startsWith('image/') ? 'IMAGE' : 
                   file.mimetype.startsWith('video/') ? 'VIDEO' : 'DOCUMENT',
-            url,
-            key
+            url: `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${result.Key}`,
+            key: result.Key
           };
         })
       );
@@ -281,7 +284,8 @@ const deleteProject = async (req, res) => {
       return res.status(404).json({ error: 'Project not found or unauthorized' });
     }
 
-    // 删除 S3 上的媒体文件
+
+   // 删除 S3 上的媒体文件
     await Promise.all(
       existingProject.media.map(async (media) => {
         if (media.key) {
@@ -301,10 +305,76 @@ const deleteProject = async (req, res) => {
   }
 };
 
+
+const deleteMedia = async (req, res) => {
+  try {
+    const { mediaId } = req.params;
+    const userId = req.user.id;
+
+    const existingMedia = await prisma.media.findFirst({
+      where: {
+        id,
+        creatorId: userId
+      },
+      }
+    );
+
+    if (!existingMedia) {
+      return res.status(404).json({ error: 'Project not found or unauthorized' });
+    }
+    res.json({ message: 'Media deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting media:', error);
+    res.status(500).json({ error: 'Error deleting media' });
+  }
+}
+
+// 删除项目媒体
+const deleteProjectMedia = async (req, res) => {
+  try {
+    const { id: projectId, mediaId } = req.params;
+    const userId = req.user.id;
+
+    // 检查项目是否存在且用户是否有权限
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      include: { creator: true }
+    });
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    if (project.creatorId !== userId) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    // 检查媒体是否存在
+    const media = await prisma.media.findUnique({
+      where: { id: mediaId }
+    });
+
+    if (!media) {
+      return res.status(404).json({ message: 'Media not found' });
+    }
+
+    // 删除媒体记录
+    await prisma.media.delete({
+      where: { id: mediaId }
+    });
+
+    res.status(200).json({ message: 'Media deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting project media:', error);
+    res.status(500).json({ message: 'Failed to delete media' });
+  }
+};
+
 module.exports = {
   createProject,
   getProjects,
   updateProject,
   getProjectById,
-  deleteProject
+  deleteProject,
+  deleteProjectMedia
 };
