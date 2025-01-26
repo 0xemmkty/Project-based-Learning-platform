@@ -8,12 +8,6 @@ from dotenv import load_dotenv
 load_dotenv('../backend/.env')
 DATABASE_URL = os.getenv('DATABASE_URL')
 
-# 定义 CSV 文件路径
-CSV_DIR = 'data/csv'
-PROJECTS_CSV = os.path.join(CSV_DIR, 'projects.csv')
-TAGS_CSV = os.path.join(CSV_DIR, 'tags.csv')
-MEDIA_CSV = os.path.join(CSV_DIR, 'media.csv')
-
 def connect_to_db():
     try:
         conn = psycopg2.connect(DATABASE_URL)
@@ -25,13 +19,13 @@ def connect_to_db():
 
 def import_projects(conn):
     try:
-        print(f"\nReading projects from: {PROJECTS_CSV}")
-        df = pd.read_csv(PROJECTS_CSV)
-        print("Projects CSV columns:", df.columns.tolist())
-        print("\nFirst few rows of projects.csv:")
+        df = pd.read_csv('data/csv/projects.csv')
+        print("\nProjects data preview:")
         print(df.head())
         
         cursor = conn.cursor()
+        # 创建 ID 映射字典：原始ID -> 新ID
+        id_mapping = {}
         
         for index, row in df.iterrows():
             sql = """
@@ -54,62 +48,35 @@ def import_projects(conn):
                 1  # 默认创建者ID为1
             )
             cursor.execute(sql, values)
-            print(f"Imported project {index + 1}/{len(df)}")
+            new_id = cursor.fetchone()[0]
+            original_id = row['id']
+            id_mapping[original_id] = new_id
+            print(f"Imported project {index + 1}/{len(df)}: Original ID {original_id} -> New ID {new_id}")
         
         conn.commit()
         print("Projects data imported successfully")
+        return id_mapping
     except Exception as e:
         print(f"Error importing projects: {e}")
-        print("Error details:", str(e))
+        conn.rollback()
+        return {}
 
-def import_tags(conn):
+def import_media(conn, id_mapping):
     try:
-        print(f"\nReading tags from: {TAGS_CSV}")
-        df = pd.read_csv(TAGS_CSV)
-        print("Tags CSV columns:", df.columns.tolist())
-        print("\nFirst few rows of tags.csv:")
+        df = pd.read_csv('data/csv/media.csv')
+        print("\nMedia data preview:")
         print(df.head())
         
         cursor = conn.cursor()
         
         for index, row in df.iterrows():
-            # 先插入标签
-            sql = """
-                INSERT INTO "Tag" (name, "createdAt")
-                VALUES (%s, %s)
-                ON CONFLICT (name) DO NOTHING
-                RETURNING id
-            """
-            values = (row['name'], datetime.now())
-            cursor.execute(sql, values)
+            original_project_id = row['projectId']
+            new_project_id = id_mapping.get(original_project_id)
             
-            # 如果有项目ID，创建关联
-            if 'projectId' in row:
-                sql = """
-                    INSERT INTO "_ProjectToTag" ("A", "B")
-                    VALUES (%s, %s)
-                """
-                cursor.execute(sql, (row['projectId'], cursor.fetchone()[0]))
-            
-            print(f"Imported tag {index + 1}/{len(df)}")
-        
-        conn.commit()
-        print("Tags data imported successfully")
-    except Exception as e:
-        print(f"Error importing tags: {e}")
-        print("Error details:", str(e))
-
-def import_media(conn):
-    try:
-        print(f"\nReading media from: {MEDIA_CSV}")
-        df = pd.read_csv(MEDIA_CSV)
-        print("Media CSV columns:", df.columns.tolist())
-        print("\nFirst few rows of media.csv:")
-        print(df.head())
-        
-        cursor = conn.cursor()
-        
-        for index, row in df.iterrows():
+            if new_project_id is None:
+                print(f"Skipping media record {index + 1}: Cannot map original projectId {original_project_id}")
+                continue
+                
             sql = """
                 INSERT INTO "Media" (url, key, type, "createdAt", "projectId")
                 VALUES (%s, %s, %s, %s, %s)
@@ -119,37 +86,40 @@ def import_media(conn):
                 row['key'],
                 row['type'],
                 datetime.now(),
-                row['projectId']
+                new_project_id  # 使用新的项目ID
             )
             cursor.execute(sql, values)
-            print(f"Imported media {index + 1}/{len(df)}")
+            print(f"Imported media {index + 1}/{len(df)}: Mapped projectId {original_project_id} -> {new_project_id}")
         
         conn.commit()
         print("Media data imported successfully")
     except Exception as e:
         print(f"Error importing media: {e}")
-        print("Error details:", str(e))
+        conn.rollback()
 
 def main():
-    # 检查文件是否存在
-    for csv_file in [PROJECTS_CSV, TAGS_CSV, MEDIA_CSV]:
-        if not os.path.exists(csv_file):
-            print(f"Error: File not found: {csv_file}")
-            return
-
     conn = connect_to_db()
     if not conn:
         return
 
     try:
-        # 按顺序导入数据
-        import_projects(conn)
-        import_tags(conn)
-        import_media(conn)
+        # 先导入 projects 并获取 ID 映射
+        print("Step 1: Importing projects...")
+        id_mapping = import_projects(conn)
         
-        print("All data imported successfully!")
+        if not id_mapping:
+            print("No projects were imported. Stopping media import.")
+            return
+            
+        print(f"\nID Mapping: {id_mapping}")
+        
+        # 使用 ID 映射导入 media
+        print("\nStep 2: Importing media...")
+        import_media(conn, id_mapping)
+        
+        print("\nImport process completed!")
     except Exception as e:
-        print(f"Error during import: {e}")
+        print(f"Error during import process: {e}")
     finally:
         conn.close()
 
