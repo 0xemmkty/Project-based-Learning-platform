@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Navbar from './components/Navbar';
@@ -15,6 +15,7 @@ import ProjectBrowser from './pages/ProjectBrowser';
 import WebFont from 'webfontloader';
 import NotFound from './pages/NotFound';
 import './styles/global.css';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 WebFont.load({
   google: {
@@ -35,27 +36,59 @@ function NavbarWrapper() {
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Suspense fallback={<div>Loading Gallery...</div>}>
-        <Router>
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/projects" element={<ProjectGallery />} />
-            <Route path="/projects/create" element={<ProjectCreate />} />
-            <Route path="/projects/:id" element={<ProjectDetail />} />
-            <Route path="/projects/:id/edit" element={<ProjectEdit />} />
-            <Route path="/projects/browser" element={<ProjectBrowser />} />
-            <Route path="/index" element={<Index />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Router>
-      </Suspense>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Suspense fallback={<div>Loading Gallery...</div>}>
+          <Router>
+            <div className="app">
+              <Navbar />
+              <Routes>
+                <Route 
+                  path="/" 
+                  element={
+                    <RequireAuth>
+                      {(user) => user ? <Navigate to="/index" /> : <LandingPage />}
+                    </RequireAuth>
+                  } 
+                />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/projects" element={<ProjectGallery />} />
+                <Route path="/projects/create" element={<ProjectCreate />} />
+                <Route path="/projects/:id" element={<ProjectDetail />} />
+                <Route path="/projects/:id/edit" element={<ProjectEdit />} />
+                <Route path="/projects/browser" element={<ProjectBrowser />} />
+                <Route 
+                  path="/index" 
+                  element={
+                    <RequireAuth>
+                      {(user) => user ? <Index /> : <Navigate to="/" />}
+                    </RequireAuth>
+                  } 
+                />
+                <Route 
+                  path="/create-project" 
+                  element={
+                    <RequireAuth>
+                      {(user) => user ? <ProjectCreate /> : <Navigate to="/login" />}
+                    </RequireAuth>
+                  } 
+                />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+          </Router>
+        </Suspense>
+      </ThemeProvider>
+    </AuthProvider>
   );
+}
+
+// 认证路由包装器组件
+function RequireAuth({ children }) {
+  const { user } = useAuth();
+  return children(user);
 }
 
 export default App;

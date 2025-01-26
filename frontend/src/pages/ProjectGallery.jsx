@@ -63,34 +63,51 @@ function Scene({ children, ...props }) {
   });
 
   return (
-    <group ref={ref} {...props}>
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[5, 5, 5]} />
-      <CategorySection
-        category="mechanical"
-        from={0}
-        len={Math.PI / 3}
-        onPointerOver={hover}
-        onPointerOut={hover}
-      />
-      <CategorySection
-        category="electrical"
-        from={Math.PI / 3}
-        len={Math.PI / 3}
-        position={[0, 0.4, 0]}
-        onPointerOver={hover}
-        onPointerOut={hover}
-      />
-      <CategorySection
-        category="software"
-        from={(2 * Math.PI) / 3}
-        len={Math.PI / 3}
-        position={[0, -0.4, 0]}
-        onPointerOver={hover}
-        onPointerOut={hover}
-      />
-      <ActiveProject hovered={hovered} />
-    </group>
+    <>
+      <group ref={ref} {...props}>
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[5, 5, 5]} />
+        <CategorySection
+          category="mechanical"
+          from={0}
+          len={Math.PI / 3}
+          onPointerOver={hover}
+          onPointerOut={hover}
+        />
+        <CategorySection
+          category="electrical"
+          from={Math.PI / 3}
+          len={Math.PI / 3}
+          position={[0, 0.4, 0]}
+          onPointerOver={hover}
+          onPointerOut={hover}
+        />
+        <CategorySection
+          category="software"
+          from={(2 * Math.PI) / 3}
+          len={Math.PI / 3}
+          position={[0, -0.4, 0]}
+          onPointerOver={hover}
+          onPointerOut={hover}
+        />
+      </group>
+
+      {hovered && (
+        <Billboard
+          position={[0, 0, 0]}
+          follow={true}
+          lockX={false}
+          lockY={false}
+        >
+          <Image
+            url={hovered.image}
+            scale={[3, 2, 1]}
+            transparent
+            opacity={1}
+          />
+        </Billboard>
+      )}
+    </>
   );
 }
 

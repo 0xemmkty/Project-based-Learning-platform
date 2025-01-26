@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link as RouterLink } from 'react-router-dom';
+import '../styles/index.css'; 
 import {
   Box,
   Button,
@@ -19,20 +20,28 @@ function LandingPage() {
   const theme = useTheme();
 
   return (
-    <Box>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        minHeight: '100vh',
+        pt: 10, // 为导航栏留出空间
+      }}
+    >
       {/* Hero Section */}
       <Box
         sx={{
           bgcolor: 'background.paper',
           color: 'text.primary',
           py: 12,
-          position: 'relative',
-          overflow: 'hidden',
+          width: '100%',
+          textAlign: 'center',
         }}
       >
         <Container maxWidth="lg">
-          <Grid container spacing={4} alignItems="center">
-            <Grid item xs={12} md={6}>
+          <Grid container spacing={4} justifyContent="center">
+            <Grid item xs={12} md={8} textAlign="center">
               <Typography variant="h2" component="h1" gutterBottom>
                 Bridging Academia and Industry
               </Typography>
@@ -44,16 +53,7 @@ function LandingPage() {
                 Join us in transforming engineering education through enterprise-engaged,
                 project-based learning that prepares you for real-world success.
               </Typography>
-              <Stack direction="row" spacing={2} sx={{ mt: 4 }}>
-                <Button
-                  component={RouterLink}
-                  to="/login"
-                  variant="contained"
-                  color="primary"
-                  size="large"
-                >
-                  Get Started
-                </Button>
+              <Stack direction="row" spacing={2} sx={{ mt: 4 }} justifyContent="center">
                 <Button
                   component={RouterLink}
                   to="/projects/browser"
@@ -71,7 +71,7 @@ function LandingPage() {
 
       {/* Features Section */}
       <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Grid container spacing={4}>
+        <Grid container spacing={4} justifyContent="center">
           <Grid item xs={12} md={4}>
             <Card sx={{ height: '100%' }}>
               <CardContent>

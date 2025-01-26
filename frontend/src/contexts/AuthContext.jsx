@@ -1,53 +1,47 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { authAPI } from '../services/api';
 
+// Create auth context
 const AuthContext = createContext(null);
 
+// Auth provider component
 export const AuthProvider = ({ children }) => {
+  // User state to track login status
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
 
+  // Check for saved user data on initial load
   useEffect(() => {
-    checkAuth();
+    // 检查本地存储的用户信息
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+    
+    if (token && userData) {
+      setUser(JSON.parse(userData));
+    }
   }, []);
 
-  const checkAuth = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        const response = await authAPI.getCurrentUser();
-        setUser(response.data);
-      }
-    } catch (error) {
-      localStorage.removeItem('token');
-    } finally {
-      setLoading(false);
-    }
+  // Login function - store user data and token
+  const login = (userData, token) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
   };
 
-  const login = async (credentials) => {
-    const response = await authAPI.login(credentials);
-    localStorage.setItem('token', response.data.token);
-    setUser(response.data.user);
-    return response.data;
+  // Logout function - clear stored data
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
   };
 
-  const logout = async () => {
-    try {
-      await authAPI.logout();
-    } finally {
-      localStorage.removeItem('token');
-      setUser(null);
-    }
-  };
-
+  // Provide auth context to children
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
-      {!loading && children}
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
     </AuthContext.Provider>
   );
 };
 
+// Custom hook to use auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

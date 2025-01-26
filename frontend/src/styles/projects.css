@@ -1,0 +1,26 @@
+/* 项目浏览页面容器 */
+.projects-browser {
+  padding-top: 100px; /* 增加顶部间距，确保内容不被导航栏遮挡 */
+  min-height: 100vh;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  background-color: #f8f9fa;
+}
+
+/* 项目列表容器 */
+.projects-list {
+  margin-top: 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 1rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .projects-browser {
+    padding-top: 80px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}

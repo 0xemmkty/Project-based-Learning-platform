@@ -1,115 +1,68 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import Container from '@mui/material/Container';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
-import Paper from '@mui/material/Paper';
-import Alert from '@mui/material/Alert';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { authAPI } from '../services/api';
+import '../styles/auth.css';  // 确保导入样式文件
 
 function LoginPage() {
   const navigate = useNavigate();
-  const [formData, setFormData] = React.useState({
+  const { login } = useAuth();
+  const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
-
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  const handleChange = (event) => {
+  const handleChange = (e) => {
     setFormData({
       ...formData,
-      [event.target.name]: event.target.value
+      [e.target.name]: e.target.value
     });
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setError('');
-    setLoading(true);
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-
       const response = await authAPI.login(formData);
-      
-      //if (!response.data || !response.data.token) {
-      //  throw new Error('Token not found in response');
-      //}
-      
-      localStorage.setItem('token', response.token);
-      // 登录成功后跳转
-      navigate('/index');
+      if (response.data) {
+        login(response.data.user, response.data.token);
+        navigate('/');
+      }
     } catch (err) {
-  
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
-      //setError(formData.password);
-    } finally {
-      setLoading(false);
+      setError(err.response?.data?.message || 'Login failed');
     }
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 8, mb: 4 }}>
-        <Paper sx={{ p: 4 }}>
-          <Typography component="h1" variant="h5" align="center" gutterBottom>
-            Sign In
-          </Typography>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-          <Box component="form" onSubmit={handleSubmit} noValidate>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label="Email Address"
+    <div className="login-page">
+      <div className="login-container">
+        <h2>Login</h2>
+        {error && <div className="error-message">{error}</div>}
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <input
+              type="email"
               name="email"
-              autoComplete="email"
-              autoFocus
+              placeholder="Email"
               value={formData.email}
               onChange={handleChange}
-              disabled={loading}
-            />
-            <TextField
-              margin="normal"
               required
-              fullWidth
-              name="password"
-              label="Password"
+            />
+          </div>
+          <div className="form-group">
+            <input
               type="password"
-              id="password"
-              autoComplete="current-password"
+              name="password"
+              placeholder="Password"
               value={formData.password}
               onChange={handleChange}
-              disabled={loading}
+              required
             />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-              disabled={loading}
-            >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </Button>
-            <Box sx={{ textAlign: 'center' }}>
-              <Link to="/register" style={{ textDecoration: 'none' }}>
-                <Typography variant="body2" color="primary">
-                  Don't have an account? Sign Up
-                </Typography>
-              </Link>
-            </Box>
-          </Box>
-        </Paper>
-      </Box>
-    </Container>
+          </div>
+          <button type="submit">Login</button>
+        </form>
+      </div>
+    </div>
   );
 }
 

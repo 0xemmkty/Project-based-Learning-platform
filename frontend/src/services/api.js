@@ -1,15 +1,10 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api'; // 后端API地址
-
 const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json'
-  }
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api'
 });
 
-// 添加请求拦截器处理token
+// 请求拦截器
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -23,17 +18,30 @@ api.interceptors.request.use(
   }
 );
 
+// 响应拦截器
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // token过期或无效
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const authAPI = {
   
   login: async (credentials) => {
-    console.log('Sending login credentials:', credentials);
-    //credentials.email = 'alice@example.com';
-    //credentials.password = 'password123';
     try {
+      console.log('Sending login request:', credentials);
       const response = await api.post('/auth/login', credentials);
-      return response.data;
+      console.log('Server response:', response);
+      return response;
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('API Error:', error.response);
       throw error;
     }
   },

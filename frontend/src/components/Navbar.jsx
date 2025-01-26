@@ -1,37 +1,37 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import '../styles/navbar.css';
 
-function Navbar() {
-  const location = useLocation();
+const Navbar = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
-    <AppBar position="static">
-      <Toolbar>
-        <Typography variant="h6" component={Link} to="/" sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit' }}>
-          Engineering Projects
-        </Typography>
-        <Box>
-          <Button 
-            color="inherit" 
-            component={Link} 
-            to="/projects"
-            sx={{ mx: 1 }}
-          >
-            Gallery
-          </Button>
-          <Button 
-            color="inherit" 
-            component={Link} 
-            to="/projects/create"
-            sx={{ mx: 1 }}
-          >
-            Create Project
-          </Button>
-        </Box>
-      </Toolbar>
-    </AppBar>
+    <nav className="navbar">
+      <div className="nav-brand">
+        <Link to={user ? "/index" : "/"}>Engineering Platform</Link>
+      </div>
+      
+      <div className="nav-links">
+        {user ? (
+          <>
+            <Link to="/create-project" className="nav-link">Create Projects</Link>
+            <button onClick={handleLogout} className="nav-link logout-btn">
+              Logout
+            </button>
+          </>
+        ) : (
+          <span className="nav-link">Not login</span>
+        )}
+      </div>
+    </nav>
   );
-}
+};
 
 export default Navbar; 
