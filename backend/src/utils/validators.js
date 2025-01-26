@@ -4,7 +4,7 @@ const validateEmail = (email) => {
 };
 
 const validatePassword = (password) => {
-  return password.length >= 8;
+  return password && password.length >= 8;
 };
 
 const validateProjectData = (data) => {

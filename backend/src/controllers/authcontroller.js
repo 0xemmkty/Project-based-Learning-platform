@@ -7,60 +7,62 @@ const { jwtSecret, jwtExpiration } = require('../config/auth');
 const register = async (req, res) => {
   try {
     const { email, password, name } = req.body;
-    console.log(email+" ,"+password+","+name);
-    // Validate input
+    console.log('Received registration request:', { email, name });
 
+    // 验证输入
     if(!validateEmail(email)) {
-      return res.status(400).json({ error: 'Email is not validate!' });
-    };
-    console.log("---------------------");
+      console.log('Invalid email:', email);
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
 
     if(!validatePassword(password)) {
-      return res.status(400).json({ error: 'Password is at lest 8 char!' });
-    };
-    // Check if user exists
-    console.log("------------"+email);
+      console.log('Invalid password');
+      return res.status(400).json({ error: 'Password must be at least 8 characters' });
+    }
+
+    // 检查用户是否存在
     const existingUser = await prisma.user.findUnique({
       where: { email }
     });
-    //console.log("existingUser = "+existingUser.email);
+
     if (existingUser) {
+      console.log('User already exists:', email);
       return res.status(400).json({ error: 'Email already registered' });
     }
-    console.log("-------------Email is OK!------------");
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // 创建用户
+    const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
-        name
+        name,
+        role: 'user'
       },
       select: {
         id: true,
         email: true,
         name: true,
-        role: true,
-        institution: true
+        role: true
       }
     });
-    console.log("---------------create OK!-----------")
-    // Generate token
+
+    console.log('User created successfully:', user.id);
+
+    // 生成 token
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
-      jwtSecret,
-      { expiresIn: jwtExpiration }
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
     );
-    
+
     res.status(201).json({
       user,
       token
     });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ error: 'Error registering user' });
+    res.status(500).json({ error: 'Registration failed' });
   }
 };
 

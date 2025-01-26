@@ -8,56 +8,50 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  password      String
-  name          String
-  role          Role      @default(USER)
-  institution   String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  projects      Project[] @relation("CreatedProjects")
-  collaborating Project[] @relation("ProjectCollaborators")
-
-  @@map("users")
+  id              Int       @id @default(autoincrement())
+  email           String    @unique
+  password        String
+  name            String
+  role            String    @default("user")
+  institution     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  createdProjects Project[] @relation("CreatedProjects")
+  collaborations  Project[] @relation("ProjectCollaborators")
 }
 
 model Project {
-  id           String    @id @default(cuid())
-  title        String
-  description  String
-  institution  String
-  projectType  ProjectType
-  skillLevel   SkillLevel
-  creatorId    String
-  creator      User      @relation("CreatedProjects", fields: [creatorId], references: [id])
-  collaborators User[]   @relation("ProjectCollaborators")
-  tags         Tag[]
-  media        Media[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  @@map("projects")
-}
-
-model Tag {
-  id       String    @id @default(cuid())
-  name     String    @unique
-  projects Project[]
-
-  @@map("tags")
+  id            Int       @id @default(autoincrement())
+  title         String
+  description   String
+  institution   String
+  projectType   String
+  skillLevel    String
+  status        String    @default("active")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  creatorId     Int
+  creator       User      @relation("CreatedProjects", fields: [creatorId], references: [id])
+  collaborators User[]    @relation("ProjectCollaborators")
+  tags          Tag[]     @relation("ProjectToTag")
+  media         Media[]
 }
 
 model Media {
-  id        String    @id @default(cuid())
-  type      MediaType
+  id        Int      @id @default(autoincrement())
   url       String
-  key       String?
-  projectId String
-  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  createdAt DateTime  @default(now())
+  key       String
+  type      String
+  createdAt DateTime @default(now())
+  projectId Int
+  project   Project  @relation(fields: [projectId], references: [id])
+}
 
-  @@map("media")
+model Tag {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  projects  Project[] @relation("ProjectToTag")
+  createdAt DateTime  @default(now())
 }
 
 enum Role {
@@ -81,4 +75,4 @@ enum MediaType {
   IMAGE
   DOCUMENT
   VIDEO
-} 
+}

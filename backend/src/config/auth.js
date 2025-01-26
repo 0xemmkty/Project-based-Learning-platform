@@ -1,5 +1,5 @@
 module.exports = {
-  jwtSecret: process.env.JWT_SECRET || 'your-secret-key',
+  jwtSecret: process.env.JWT_SECRET,
   jwtExpiration: '24h',
   saltRounds: 10
 }; 

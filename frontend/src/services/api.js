@@ -37,7 +37,17 @@ export const authAPI = {
       throw error;
     }
   },
-  register: (userData) => api.post('/auth/register', userData),
+  register: async (userData) => {
+    try {
+      console.log('Sending registration request:', userData);
+      const response = await api.post('/auth/register', userData);
+      console.log('Registration response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('API Error:', error.response?.data || error);
+      throw error.response?.data || { error: 'Registration failed' };
+    }
+  },
   logout: () => api.post('/auth/logout')
 };
 
