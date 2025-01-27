@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://18.117.98.24:5000',  
+  baseURL: 'https://18.117.98.24:5000',  
   headers: {
     'Content-Type': 'application/json',
   },
@@ -36,6 +36,7 @@ api.interceptors.response.use(
 );
 
 export const authAPI = {
+  
   login: async (credentials) => {
     try {
       console.log('Sending login request:', credentials);
@@ -50,7 +51,7 @@ export const authAPI = {
   register: async (userData) => {
     try {
       console.log('Sending registration request:', userData);
-      const response = await api.post('/api/auth/register', userData);
+      const response = await api.post('/auth/register', userData);
       console.log('Registration response:', response.data);
       return response.data;
     } catch (error) {
@@ -58,12 +59,16 @@ export const authAPI = {
       throw error.response?.data || { error: 'Registration failed' };
     }
   },
-  logout: () => api.post('/api/auth/logout')
+  logout: () => api.post('/auth/logout')
 };
+
+
+
 
 export const userAPI = {
   getCurrentUser: () => api.get('/users/me'),
   updateProfile: (userData) => api.put('/users/profile', userData)
 };
+
 
 export default api; 
