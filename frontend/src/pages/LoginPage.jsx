@@ -23,12 +23,14 @@ function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log('Using authAPI from:', authAPI);  // 添加调试日志
       const response = await authAPI.login(formData);
       if (response.data) {
         login(response.data.user, response.data.token);
         navigate('/');
       }
     } catch (err) {
+      console.error('Full error:', err);  // 添加完整错误日志
       setError(err.response?.data?.message || 'Login failed');
     }
   };

@@ -10,12 +10,6 @@ const api = axios.create({
 // 请求拦截器
 api.interceptors.request.use(
   (config) => {
-    console.log('Full request config:', {
-      url: config.url,
-      method: config.method,
-      headers: config.headers,
-      data: config.data
-    });
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -23,24 +17,14 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
 
 // 响应拦截器
 api.interceptors.response.use(
-  (response) => {
-    console.log('Response:', response);
-    return response;
-  },
+  (response) => response,
   (error) => {
-    console.error('Full error details:', {
-      message: error.message,
-      response: error.response,
-      request: error.request,
-      config: error.config
-    });
     if (error.response?.status === 401) {
       // token过期或无效
       localStorage.removeItem('token');
@@ -52,19 +36,14 @@ api.interceptors.response.use(
 );
 
 export const authAPI = {
-  
   login: async (credentials) => {
     try {
-      console.log('Attempting login with:', credentials);
+      console.log('API baseURL:', api.defaults.baseURL);  // 添加调试日志
+      console.log('Sending login request:', credentials);
       const response = await api.post('/api/auth/login', credentials);
-      console.log('Login response:', response);
       return response;
     } catch (error) {
-      console.error('Login error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
+      console.error('Login error:', error);
       throw error;
     }
   },
@@ -82,13 +61,9 @@ export const authAPI = {
   logout: () => api.post('/auth/logout')
 };
 
-
-
-
 export const userAPI = {
   getCurrentUser: () => api.get('/users/me'),
   updateProfile: (userData) => api.put('/users/profile', userData)
 };
-
 
 export default api; 
