@@ -66,7 +66,27 @@ const ProjectBrowser = () => {
     fetchProjects();
   }, [filters]);
 
-  const filteredProjects = projects;
+  const getFilteredProjects = () => {
+    return projects.filter(project => {
+      const searchLower = searchTerm.toLowerCase();
+      const titleMatch = project.title.toLowerCase().includes(searchLower);
+      const descMatch = project.description.toLowerCase().includes(searchLower);
+      const searchMatch = searchTerm === '' || titleMatch || descMatch;
+
+      const institutionMatch = !filters.institution || project.institution === filters.institution;
+      const typeMatch = !filters.type || project.projectType === filters.type;
+      const skillMatch = !filters.skillLevel || project.skillLevel === filters.skillLevel;
+
+      return searchMatch && institutionMatch && typeMatch && skillMatch;
+    });
+  };
+
+  const filteredProjects = getFilteredProjects();
+  const pageCount = Math.ceil(filteredProjects.length / projectsPerPage);
+  const displayedProjects = filteredProjects.slice(
+    (page - 1) * projectsPerPage,
+    page * projectsPerPage
+  );
 
   const handleFilterChange = (event) => {
     const { name, value } = event.target;
@@ -80,13 +100,6 @@ const ProjectBrowser = () => {
   const handlePageChange = (event, value) => {
     setPage(value);
   };
-
-  // Calculate pagination
-  const pageCount = Math.ceil(filteredProjects.length / projectsPerPage);
-  const displayedProjects = filteredProjects.slice(
-    (page - 1) * projectsPerPage,
-    page * projectsPerPage
-  );
 
   if (loading) return (
     <Container>
@@ -103,15 +116,17 @@ const ProjectBrowser = () => {
   return (
     <div className="projects-browser">
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        {/* Filters Section */}
-        <Grid container spacing={2} sx={{ mb: 4 }}>
-          <Grid item xs={12} md={3}>
+        <Grid container spacing={2} sx={{ mb: 4 }} alignItems="center">
+          <Grid item xs={12} sm={3}>
             <TextField
               fullWidth
               variant="outlined"
               placeholder="Search projects..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1);
+              }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -121,7 +136,7 @@ const ProjectBrowser = () => {
               }}
             />
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} sm={3}>
             <FormControl fullWidth>
               <InputLabel>Institution</InputLabel>
               <Select
@@ -131,13 +146,13 @@ const ProjectBrowser = () => {
                 label="Institution"
               >
                 <MenuItem value="">All</MenuItem>
-                {institutions.map((institution) => (
-                  <MenuItem key={institution} value={institution}>{institution}</MenuItem>
+                {institutions.map((inst) => (
+                  <MenuItem key={inst} value={inst}>{inst}</MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} sm={3}>
             <FormControl fullWidth>
               <InputLabel>Project Type</InputLabel>
               <Select
@@ -153,7 +168,7 @@ const ProjectBrowser = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} sm={3}>
             <FormControl fullWidth>
               <InputLabel>Skill Level</InputLabel>
               <Select
@@ -171,57 +186,53 @@ const ProjectBrowser = () => {
           </Grid>
         </Grid>
 
-        {/* Projects Grid */}
         <Grid container spacing={3}>
-          {filteredProjects
-            .slice((page - 1) * projectsPerPage, page * projectsPerPage)
-            .map((project) => (
-              <Grid item xs={12} sm={6} md={4} key={project.id}>
-                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                  {project.media && project.media.length > 0 && (
-                    <CardMedia
-                      component="img"
-                      height="200"
-                      image={project.media.find(m => m.type === 'IMAGE')?.url || '/placeholder.jpg'}
-                      alt={project.title}
-                      sx={{ objectFit: 'cover' }}
-                    />
-                  )}
-                  <CardContent sx={{ flexGrow: 1 }}>
-                    <Typography gutterBottom variant="h5" component="h2">
-                      {project.title}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      {project.description}
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      {project.institution && (
-                        <Chip label={project.institution} size="small" />
-                      )}
-                      {project.skillLevel && (
-                        <Chip label={project.skillLevel} size="small" />
-                      )}
-                      {project.projectType && (
-                        <Chip label={project.projectType} size="small" />
-                      )}
-                    </Box>
-                  </CardContent>
-                  <CardActions>
-                    <Button 
-                      size="small" 
-                      component={Link} 
-                      to={`/projects/${project.id}`}
-                      variant="contained"
-                    >
-                      View Details
-                    </Button>
-                  </CardActions>
-                </Card>
-              </Grid>
-            ))}
+          {displayedProjects.map((project) => (
+            <Grid item xs={12} sm={6} md={4} key={project.id}>
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                {project.media && project.media.length > 0 && (
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={project.media.find(m => m.type === 'IMAGE')?.url || '/placeholder.jpg'}
+                    alt={project.title}
+                    sx={{ objectFit: 'cover' }}
+                  />
+                )}
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Typography gutterBottom variant="h5" component="h2">
+                    {project.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {project.description}
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {project.institution && (
+                      <Chip label={project.institution} size="small" />
+                    )}
+                    {project.skillLevel && (
+                      <Chip label={project.skillLevel} size="small" />
+                    )}
+                    {project.projectType && (
+                      <Chip label={project.projectType} size="small" />
+                    )}
+                  </Box>
+                </CardContent>
+                <CardActions>
+                  <Button 
+                    size="small" 
+                    component={Link} 
+                    to={`/projects/${project.id}`}
+                    variant="contained"
+                  >
+                    View Details
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
         </Grid>
 
-        {/* Pagination */}
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
           <Pagination 
             count={pageCount} 
