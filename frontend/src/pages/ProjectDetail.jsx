@@ -29,15 +29,16 @@ function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
+  const [error, setError] = useState(null);
   
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const response = await api.get(`/projects/${id}`);
+        const response = await api.get(`/api/projects/${id}`);
         setProject(response.data);
-        console.log('Project data:', response.data); // 调试用
       } catch (error) {
         console.error('Error fetching project:', error);
+        setError('Failed to load project details');
       }
     };
     fetchProject();

@@ -1,21 +1,18 @@
 import axios from 'axios';
 
-// 先打印检查 API_URL
-const API_URL = 'https://18.117.98.24:5000';
-console.log('API_URL is:', API_URL);
-
-const axiosInstance = axios.create({
-  baseURL: API_URL,
+// 创建一个新的 axios 实例
+const api = axios.create({
+  baseURL: 'http://18.117.98.24:5000',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// 立即检查实例配置
-console.log('Axios instance baseURL:', axiosInstance.defaults.baseURL);
+// 添加调试日志
+console.log('API instance created with baseURL:', api.defaults.baseURL);
 
 // 请求拦截器
-axiosInstance.interceptors.request.use(
+api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -29,7 +26,7 @@ axiosInstance.interceptors.request.use(
 );
 
 // 响应拦截器
-axiosInstance.interceptors.response.use(
+api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
@@ -45,17 +42,17 @@ axiosInstance.interceptors.response.use(
 export const authAPI = {
   login: async (credentials) => {
     try {
-      // 打印完整 URL
-      const fullUrl = `${axiosInstance.defaults.baseURL}/api/auth/login`;
+      // 打印完整的请求 URL
+      const fullUrl = `${api.defaults.baseURL}/api/auth/login`;
       console.log('Full request URL:', fullUrl);
       
-      const response = await axiosInstance.post('/api/auth/login', credentials);
+      const response = await api.post('/api/auth/login', credentials);
       return response;
     } catch (error) {
       console.error('Login error:', {
-        baseURL: axiosInstance.defaults.baseURL,
-        requestUrl: error.config?.url,
-        fullUrl: error.config?.baseURL + error.config?.url
+        message: error.message,
+        config: error.config,
+        baseURL: api.defaults.baseURL
       });
       throw error;
     }
@@ -63,7 +60,7 @@ export const authAPI = {
   register: async (userData) => {
     try {
       console.log('Sending registration request:', userData);
-      const response = await axiosInstance.post('/auth/register', userData);
+      const response = await api.post('/auth/register', userData);
       console.log('Registration response:', response.data);
       return response.data;
     } catch (error) {
@@ -71,12 +68,12 @@ export const authAPI = {
       throw error.response?.data || { error: 'Registration failed' };
     }
   },
-  logout: () => axiosInstance.post('/auth/logout')
+  logout: () => api.post('/auth/logout')
 };
 
 export const userAPI = {
-  getCurrentUser: () => axiosInstance.get('/users/me'),
-  updateProfile: (userData) => axiosInstance.put('/users/profile', userData)
+  getCurrentUser: () => api.get('/users/me'),
+  updateProfile: (userData) => api.put('/users/profile', userData)
 };
 
-export default axiosInstance; 
+export default api; 

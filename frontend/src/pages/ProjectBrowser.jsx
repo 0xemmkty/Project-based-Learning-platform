@@ -46,17 +46,25 @@ const ProjectBrowser = () => {
     const fetchProjects = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/projects', {
+        console.log('Fetching projects with filters:', filters);
+        
+        const response = await api.get('/api/projects', {
           params: {
             institution: filters.institution,
             projectType: filters.type,
             skillLevel: filters.skillLevel
           }
         });
+        
+        console.log('Projects response:', response.data);
         setProjects(response.data);
         setError(null);
       } catch (err) {
-        console.error('Error fetching projects:', err);
+        console.error('Error fetching projects:', {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status
+        });
         setError('Failed to load projects. Please try again later.');
       } finally {
         setLoading(false);

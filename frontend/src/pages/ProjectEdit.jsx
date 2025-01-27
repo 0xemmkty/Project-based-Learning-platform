@@ -63,7 +63,7 @@ function ProjectEdit() {
       setError(null);
       
       console.log('Fetching project with ID:', id);
-      const response = await api.get(`/projects/${id}`);
+      const response = await api.get(`/api/projects/${id}`);
       console.log('Project response:', response.data);
       
       if (!response.data) {
@@ -88,11 +88,7 @@ function ProjectEdit() {
       console.log('Project loaded successfully');
       
     } catch (err) {
-      console.error('Error fetching project:', {
-        message: err.message,
-        status: err.response?.status,
-        data: err.response?.data
-      });
+      console.error('Error fetching project:', err);
       setError(err.response?.data?.message || 'Failed to load project');
     } finally {
       setLoading(false);
@@ -164,7 +160,7 @@ function ProjectEdit() {
 
   const handleExistingMediaDelete = async (mediaId) => {
     try {
-      await api.delete(`/projects/${id}/image/${mediaId}`);
+      await api.delete(`/api/projects/${id}/image/${mediaId}`);
       
       setExistingMedia(prevMedia => 
         prevMedia.filter(media => media.id !== mediaId)
@@ -202,7 +198,7 @@ function ProjectEdit() {
         formDataToSend.append('files', file);
       });
 
-      await api.put(`/projects/${id}`, formDataToSend, {
+      await api.put(`/api/projects/${id}`, formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -221,9 +217,7 @@ function ProjectEdit() {
 
       setLoading(true);
       
-      const projectId = id;
-      
-      await api.delete(`/projects/${projectId}`);
+      await api.delete(`/api/projects/${id}`);
       
       console.log('Project deleted successfully');
       

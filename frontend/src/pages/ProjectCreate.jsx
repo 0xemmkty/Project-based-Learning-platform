@@ -121,7 +121,7 @@ export function ProjectCreate() {
       
       formDataToSend.append('relatedLinks', JSON.stringify(formData.relatedLinks.filter(link => link)));
 
-      const response = await api.post('/projects', formDataToSend, {
+      const response = await api.post('/api/projects', formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
