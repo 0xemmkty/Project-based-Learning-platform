@@ -10,6 +10,12 @@ const api = axios.create({
 // 请求拦截器
 api.interceptors.request.use(
   (config) => {
+    console.log('Full request config:', {
+      url: config.url,
+      method: config.method,
+      headers: config.headers,
+      data: config.data
+    });
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -17,14 +23,24 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
 
 // 响应拦截器
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('Response:', response);
+    return response;
+  },
   (error) => {
+    console.error('Full error details:', {
+      message: error.message,
+      response: error.response,
+      request: error.request,
+      config: error.config
+    });
     if (error.response?.status === 401) {
       // token过期或无效
       localStorage.removeItem('token');
@@ -39,12 +55,16 @@ export const authAPI = {
   
   login: async (credentials) => {
     try {
-      console.log('Sending login request:', credentials);
+      console.log('Attempting login with:', credentials);
       const response = await api.post('/api/auth/login', credentials);
-      console.log('Server response:', response);
+      console.log('Login response:', response);
       return response;
     } catch (error) {
-      console.error('API Error:', error.response);
+      console.error('Login error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       throw error;
     }
   },
