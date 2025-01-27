@@ -1,8 +1,10 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://3.148.105.136',  // 使用 HTTPS
-  // ... 其他配置
+  baseURL: 'http://18.117.98.24:5000',  // 更新为你的新 EC2 IP
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 // 请求拦截器
