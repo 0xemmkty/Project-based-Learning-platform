@@ -1,9 +1,9 @@
 import axios from 'axios';
 
-// 明确定义 API URL
+// 先打印检查 API_URL
 const API_URL = 'https://18.117.98.24:5000';
+console.log('API_URL is:', API_URL);
 
-// 创建 axios 实例
 const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
@@ -11,91 +11,53 @@ const axiosInstance = axios.create({
   },
 });
 
+// 立即检查实例配置
+console.log('Axios instance baseURL:', axiosInstance.defaults.baseURL);
+
 // 请求拦截器
 axiosInstance.interceptors.request.use(
   (config) => {
-    console.log('Making request:', {
-      method: config.method,
-      url: `${config.baseURL}${config.url}`,
-      data: config.data,
-      headers: config.headers
-    });
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
-    console.error('Request interceptor error:', {
-      message: error.message,
-      config: error.config
-    });
     return Promise.reject(error);
   }
 );
 
 // 响应拦截器
 axiosInstance.interceptors.response.use(
-  (response) => {
-    console.log('Response received:', {
-      status: response.status,
-      data: response.data,
-      headers: response.headers
-    });
-    return response;
-  },
+  (response) => response,
   (error) => {
-    console.error('Response error:', {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-      config: {
-        method: error.config?.method,
-        url: `${error.config?.baseURL}${error.config?.url}`,
-        data: error.config?.data,
-        headers: error.config?.headers
-      }
-    });
+    if (error.response?.status === 401) {
+      // token过期或无效
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
     return Promise.reject(error);
   }
 );
 
-// 导出 auth API 方法
 export const authAPI = {
   login: async (credentials) => {
     try {
-      console.log('Login attempt:', {
-        url: `${API_URL}/api/auth/login`,
-        credentials: { ...credentials, password: '[HIDDEN]' }
-      });
-
-      const response = await axiosInstance.post('/api/auth/login', credentials);
+      // 打印完整 URL
+      const fullUrl = `${axiosInstance.defaults.baseURL}/api/auth/login`;
+      console.log('Full request URL:', fullUrl);
       
-      console.log('Login successful:', {
-        status: response.status,
-        user: response.data.user,
-        hasToken: !!response.data.token
-      });
-
+      const response = await axiosInstance.post('/api/auth/login', credentials);
       return response;
     } catch (error) {
-      console.error('Login failed:', {
-        name: error.name,
-        message: error.message,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        request: {
-          method: error.config?.method,
-          url: `${error.config?.baseURL}${error.config?.url}`,
-          headers: error.config?.headers
-        },
-        isNetworkError: error.message === 'Network Error',
-        isTimeout: error.code === 'ECONNABORTED'
+      console.error('Login error:', {
+        baseURL: axiosInstance.defaults.baseURL,
+        requestUrl: error.config?.url,
+        fullUrl: error.config?.baseURL + error.config?.url
       });
-
-      // 重新抛出错误，但添加更多上下文
-      throw {
-        ...error,
-        friendlyMessage: getFriendlyErrorMessage(error)
-      };
+      throw error;
     }
   },
   register: async (userData) => {
@@ -116,32 +78,5 @@ export const userAPI = {
   getCurrentUser: () => axiosInstance.get('/users/me'),
   updateProfile: (userData) => axiosInstance.put('/users/profile', userData)
 };
-
-// 获取友好的错误消息
-function getFriendlyErrorMessage(error) {
-  if (error.message === 'Network Error') {
-    return 'Unable to connect to the server. Please check your internet connection.';
-  }
-  if (error.code === 'ECONNABORTED') {
-    return 'The request took too long to complete. Please try again.';
-  }
-  if (error.response) {
-    switch (error.response.status) {
-      case 400:
-        return 'Invalid request. Please check your input.';
-      case 401:
-        return 'Invalid email or password.';
-      case 403:
-        return 'Access denied. Please check your credentials.';
-      case 404:
-        return 'Server endpoint not found.';
-      case 500:
-        return 'Server error. Please try again later.';
-      default:
-        return `Server error (${error.response.status}). Please try again.`;
-    }
-  }
-  return 'An unexpected error occurred. Please try again.';
-}
 
 export default axiosInstance; 
