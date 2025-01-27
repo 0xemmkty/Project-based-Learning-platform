@@ -1,6 +1,7 @@
 {
   "name": "edubridge-frontend",
   "version": "0.1.0",
+  "homepage": "http://frontendforthis.s3-website.us-east-2.amazonaws.com",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.14.0",

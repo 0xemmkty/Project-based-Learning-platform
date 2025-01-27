@@ -7,7 +7,7 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProjectGallery from './pages/ProjectGallery';
-import Index from './pages/index';
+import Dashboard from './pages/Dashboard';
 import ProjectDetail from './pages/ProjectDetail';
 import ProjectEdit from './pages/ProjectEdit';
 import ProjectCreate from './pages/ProjectCreate';
@@ -48,7 +48,7 @@ function App() {
                   path="/" 
                   element={
                     <RequireAuth>
-                      {(user) => user ? <Navigate to="/index" /> : <LandingPage />}
+                      {(user) => user ? <Navigate to="/dashboard" /> : <LandingPage />}
                     </RequireAuth>
                   } 
                 />
@@ -60,10 +60,10 @@ function App() {
                 <Route path="/projects/:id/edit" element={<ProjectEdit />} />
                 <Route path="/projects/browser" element={<ProjectBrowser />} />
                 <Route 
-                  path="/index" 
+                  path="/dashboard" 
                   element={
                     <RequireAuth>
-                      {(user) => user ? <Index /> : <Navigate to="/" />}
+                      {(user) => user ? <Dashboard /> : <Navigate to="/" />}
                     </RequireAuth>
                   } 
                 />
