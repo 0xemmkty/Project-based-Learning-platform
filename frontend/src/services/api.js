@@ -1,11 +1,15 @@
 import axios from 'axios';
 
+// 创建一个新的 axios 实例
 const api = axios.create({
-  baseURL: 'https://18.117.98.24:5000',  
+  baseURL: 'https://18.117.98.24:5000',
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// 添加调试日志
+console.log('API instance created with baseURL:', api.defaults.baseURL);
 
 // 请求拦截器
 api.interceptors.request.use(
@@ -38,12 +42,18 @@ api.interceptors.response.use(
 export const authAPI = {
   login: async (credentials) => {
     try {
-      console.log('API baseURL:', api.defaults.baseURL);  // 添加调试日志
-      console.log('Sending login request:', credentials);
+      // 打印完整的请求 URL
+      const fullUrl = `${api.defaults.baseURL}/api/auth/login`;
+      console.log('Full request URL:', fullUrl);
+      
       const response = await api.post('/api/auth/login', credentials);
       return response;
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login error:', {
+        message: error.message,
+        config: error.config,
+        baseURL: api.defaults.baseURL
+      });
       throw error;
     }
   },
