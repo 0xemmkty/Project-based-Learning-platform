@@ -30,6 +30,7 @@ const categories = {
       image: `/software${i + 1}.jpg`,
     })),
   },
+ 
 };
 
 export function ProjectGallery() {

@@ -16,10 +16,13 @@ import {
   Pagination,
   CardActions,
   Button,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 import '../styles/projects.css';
+import SearchIcon from '@mui/icons-material/Search';
 
 // Sample data - In a real application, this would come from an API
 const institutions = ['MIT', 'Stanford', 'Yale', 'Shenzhen'];
@@ -37,6 +40,7 @@ const ProjectBrowser = () => {
   });
   const [page, setPage] = useState(1);
   const projectsPerPage = 6;
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -101,7 +105,23 @@ const ProjectBrowser = () => {
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         {/* Filters Section */}
         <Grid container spacing={2} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} md={3}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Search projects..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} md={3}>
             <FormControl fullWidth>
               <InputLabel>Institution</InputLabel>
               <Select
@@ -117,7 +137,7 @@ const ProjectBrowser = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} md={3}>
             <FormControl fullWidth>
               <InputLabel>Project Type</InputLabel>
               <Select
@@ -133,7 +153,7 @@ const ProjectBrowser = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} md={3}>
             <FormControl fullWidth>
               <InputLabel>Skill Level</InputLabel>
               <Select

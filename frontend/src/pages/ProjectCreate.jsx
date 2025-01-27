@@ -32,7 +32,7 @@ const SkillLevel = {
   ADVANCED: 'ADVANCED'
 };
 
-const institutions = ['MIT', 'Stanford', 'Yale', 'Wisconsin'];
+const institutions = ['MIT', 'Stanford', 'Yale', 'Shenzhen'];
 
 export function ProjectCreate() {
   const navigate = useNavigate();
@@ -121,14 +121,17 @@ export function ProjectCreate() {
       
       formDataToSend.append('relatedLinks', JSON.stringify(formData.relatedLinks.filter(link => link)));
 
-      await api.post('/projects', formDataToSend, {
+      const response = await api.post('/projects', formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      navigate('/projects');
+      console.log('Project created:', response.data);
+      
+      navigate('/projects/browser');
     } catch (error) {
+      console.error('Error creating project:', error);
       setError('Error creating project: ' + error.message);
     }
   };

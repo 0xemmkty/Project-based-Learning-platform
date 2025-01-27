@@ -216,12 +216,25 @@ function ProjectEdit() {
 
   const handleDelete = async () => {
     try {
-      await api.delete(`/projects/${id}`);
-      navigate('/projects');
-    } catch (err) {
-      setError('Failed to delete project');
+      const confirmed = window.confirm('Are you sure you want to delete this project?');
+      if (!confirmed) return;
+
+      setLoading(true);
+      
+      const projectId = id;
+      
+      await api.delete(`/projects/${projectId}`);
+      
+      console.log('Project deleted successfully');
+      
+      navigate('/projects/browser');
+      
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      alert('Failed to delete project: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setLoading(false);
     }
-    setDeleteDialogOpen(false);
   };
 
   if (loading) return <Typography>Loading...</Typography>;
@@ -433,12 +446,12 @@ function ProjectEdit() {
 
         <Stack direction="row" spacing={2} justifyContent="space-between">
           <Button
+            onClick={handleDelete}
+            disabled={loading}
+            variant="contained" 
             color="error"
-            variant="contained"
-            onClick={() => setDeleteDialogOpen(true)}
-            startIcon={<DeleteIcon />}
           >
-            Delete Project
+            {loading ? 'Deleting...' : 'Delete Project'}
           </Button>
           <Box>
             <Button

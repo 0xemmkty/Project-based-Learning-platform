@@ -23,24 +23,30 @@ const parseTags = (tags) => {
 
 // 获取单个项目的详情
 const getProjectById = async (req, res) => {
-  const { id } = req.params;
   try {
-    console.log(id);
-    const project = await prisma.project.findFirst({
-      where: {
-        id
-      },
+    const { id } = req.params;
+    console.log('Fetching project with id:', id);  // 调试日志
+
+    const project = await prisma.project.findUnique({
+      where: { id: parseInt(id) },
       include: {
-        media: true
+        creator: true,
+        tags: true,
+        media: true,
+        collaborators: true
       }
     });
-    console.log(project);
+
+    console.log('Found project:', project);  // 调试日志
+
     if (!project) {
-      return res.status(404).send('Project not found');
+      return res.status(404).json({ message: 'Project not found' });
     }
-    res.json(project);  //return project detail.
+
+    res.json(project);
   } catch (error) {
-    res.status(500).send('Server error');
+    console.error('Error in getProjectById:', error);  // 错误日志
+    res.status(500).json({ message: 'Error fetching project details' });
   }
 };
 
@@ -184,22 +190,31 @@ const getProjects = async (req, res) => {
 
 const updateProject = async (req, res) => {
   try {
-    const { id } = req.params;
+    const projectId = parseInt(req.params.id);  // 转换为整数
     const { title, description, institution, projectType, skillLevel, tags } = req.body;
     const userId = req.user.id;
-    if (userId == null) {
-      return res.status(401).json({ error: 'UserId is null or not found' });
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
-    console.log("-------updateProject--------"+userId);
-    const existingProject = await prisma.project.findFirst({
+
+    // 先检查项目是否存在
+    const existingProject = await prisma.project.findUnique({
       where: {
-        id,
-        creatorId: userId
+        id: projectId
+      },
+      include: {
+        creator: true
       }
     });
-    console.log("-------existingProject--------"+existingProject);
+
     if (!existingProject) {
-      return res.status(404).json({ error: 'Project not found or unauthorized' });
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    // 检查用户是否是项目创建者
+    if (existingProject.creatorId !== userId) {
+      return res.status(403).json({ error: 'Not authorized to update this project' });
     }
 
     let mediaFiles = [];
@@ -219,8 +234,11 @@ const updateProject = async (req, res) => {
 
     const parsedTags = parseTags(tags);
 
+    // 更新项目
     const updatedProject = await prisma.project.update({
-      where: { id },
+      where: {
+        id: projectId
+      },
       data: {
         title,
         description,
@@ -228,15 +246,17 @@ const updateProject = async (req, res) => {
         projectType,
         skillLevel,
         tags: {
-          set: [],
+          set: [],  // 先清除所有标签
           connectOrCreate: parsedTags.map(tag => ({
             where: { name: tag },
             create: { name: tag }
           }))
         },
-        media: {
-          create: mediaFiles
-        }
+        ...(mediaFiles.length > 0 && {
+          media: {
+            create: mediaFiles
+          }
+        })
       },
       include: {
         creator: {
@@ -261,47 +281,77 @@ const updateProject = async (req, res) => {
     res.json(updatedProject);
   } catch (error) {
     console.error('Error updating project:', error);
-    res.status(500).json({ error: 'Error updating project' });
+    res.status(500).json({ error: 'Error updating project', details: error.message });
   }
 };
 
 const deleteProject = async (req, res) => {
   try {
-    const { id } = req.params;
+    const projectId = parseInt(req.params.id);
     const userId = req.user.id;
 
-    const existingProject = await prisma.project.findFirst({
-      where: {
-        id,
-        creatorId: userId
-      },
+    console.log('Attempting to delete project:', projectId); // 调试日志
+
+    // 先检查项目是否存在
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
       include: {
-        media: true
+        media: true,
+        tags: true
       }
     });
 
-    if (!existingProject) {
-      return res.status(404).json({ error: 'Project not found or unauthorized' });
+    if (!project) {
+      console.log('Project not found:', projectId);
+      return res.status(404).json({ error: 'Project not found' });
     }
 
+    // 检查用户权限
+    if (project.creatorId !== userId) {
+      console.log('User not authorized:', userId);
+      return res.status(403).json({ error: 'Not authorized to delete this project' });
+    }
 
-   // 删除 S3 上的媒体文件
-    await Promise.all(
-      existingProject.media.map(async (media) => {
-        if (media.key) {
-          await deleteFromS3(media.key);
-        }
-      })
-    );
+    // 使用事务确保所有删除操作都成功
+    await prisma.$transaction(async (tx) => {
+      // 1. 删除媒体记录
+      if (project.media.length > 0) {
+        console.log('Deleting media records...');
+        await tx.media.deleteMany({
+          where: { projectId }
+        });
+      }
 
-    await prisma.project.delete({
-      where: { id }
+      // 2. 删除标签关联
+      if (project.tags.length > 0) {
+        console.log('Removing tag associations...');
+        await tx.project.update({
+          where: { id: projectId },
+          data: {
+            tags: {
+              set: []
+            }
+          }
+        });
+      }
+
+      // 3. 删除项目
+      console.log('Deleting project...');
+      await tx.project.delete({
+        where: { id: projectId }
+      });
     });
 
+    console.log('Project deleted successfully:', projectId);
     res.json({ message: 'Project deleted successfully' });
+
   } catch (error) {
-    console.error('Error deleting project:', error);
-    res.status(500).json({ error: 'Error deleting project' });
+    console.error('Error in deleteProject:', error);
+    res.status(500).json({ 
+      error: 'Failed to delete project',
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
 

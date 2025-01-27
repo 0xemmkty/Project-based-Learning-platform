@@ -222,9 +222,9 @@ function ProjectDetail() {
             Edit Project
           </Button>
           <Button 
-            variant="outlined" 
-            onClick={() => navigate('/projects')}
+            onClick={() => navigate('/projects/browser')}
             startIcon={<ArrowBackIcon />}
+            sx={{ mb: 2 }}
           >
             Back to Gallery
           </Button>
