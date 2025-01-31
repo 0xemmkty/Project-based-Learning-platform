@@ -116,6 +116,7 @@ The following environment variables are required:
 2. Install dependencies and set up the Node.js environment.
 3. Use **PM2** for process management.
 4. Configure **Nginx** as a reverse proxy for the backend server.
+5. Winscp and Putty
 
 #### **Frontend Deployment**
 1. Build production-ready assets:
@@ -139,13 +140,6 @@ The following environment variables are required:
 
 ---
 
-## **Future Enhancements**
 
-- Real-time collaboration tools.
-- Advanced analytics for projects.
-- Integration with Learning Management Systems (LMS).
-- Mobile application development.
-- AI-powered project recommendations.
 
----
 

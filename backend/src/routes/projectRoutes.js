@@ -4,7 +4,8 @@ const {
   createProject, 
   getProjects, 
   getProjectById,
-  updateProject, 
+  updateProject,
+  deleteProjectMedia,
   deleteProject 
 } = require('../controllers/projectcontroller');
 const auth = require('../middleware/auth');
@@ -17,5 +18,6 @@ router.get('/', getProjects);
 router.put('/:id', auth, upload.array('files', 5), updateProject);
 router.delete('/:id', auth, deleteProject);
 router.get('/:id', getProjectById);
+router.delete('/:id/image/:mediaId', auth, deleteProjectMedia);
 
 module.exports = router;

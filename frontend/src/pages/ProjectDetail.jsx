@@ -36,6 +36,7 @@ function ProjectDetail() {
       try {
         const response = await api.get(`/api/projects/${id}`);
         setProject(response.data);
+        console.log(JSON.stringify(response.data));
       } catch (error) {
         console.error('Error fetching project:', error);
         setError('Failed to load project details');
@@ -82,16 +83,6 @@ function ProjectDetail() {
           </Grid>
         </Grid>
 
-        {/* 描述 */}
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Description
-          </Typography>
-          <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-            {project.description || 'No description available'}
-          </Typography>
-        </Box>
-
         {/* 标签 */}
         <Box sx={{ mb: 3 }}>
           <Typography variant="h6" gutterBottom>
@@ -99,12 +90,12 @@ function ProjectDetail() {
           </Typography>
           <Stack direction="row" spacing={1} flexWrap="wrap">
             {project.tags && project.tags.length > 0 ? (
-              project.tags.map((tag, index) => (
-                <Chip 
-                  key={index} 
-                  label={tag} 
+              project.tags.map((tag) => (
+                <Chip
+                  key={tag.id}
+                  label={tag.name} // 修改为显示 tag.name
                   sx={{ m: 0.5 }}
-                  color="primary" 
+                  color="primary"
                   variant="outlined"
                 />
               ))
@@ -113,6 +104,7 @@ function ProjectDetail() {
             )}
           </Stack>
         </Box>
+
 
         {/* 相关链接 */}
         {project.relatedLinks && project.relatedLinks.length > 0 && (

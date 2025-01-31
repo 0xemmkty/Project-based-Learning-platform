@@ -88,7 +88,11 @@ function ProjectEdit() {
       console.log('Project loaded successfully');
       
     } catch (err) {
-      console.error('Error fetching project:', err);
+      console.error('Error fetching project:', {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data
+      });
       setError(err.response?.data?.message || 'Failed to load project');
     } finally {
       setLoading(false);
@@ -197,13 +201,15 @@ function ProjectEdit() {
       formData.files.forEach(file => {
         formDataToSend.append('files', file);
       });
-
-      await api.put(`/api/projects/${id}`, formDataToSend, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
+    try{
+        await api.put(`/api/projects/${id}`, formDataToSend, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+      }catch(err){
+        alert("You don't have permission to modify!");
+    }
       navigate(`/projects/${id}`);
     } catch (err) {
       setError('Failed to update project');
@@ -212,23 +218,12 @@ function ProjectEdit() {
 
   const handleDelete = async () => {
     try {
-      const confirmed = window.confirm('Are you sure you want to delete this project?');
-      if (!confirmed) return;
-
-      setLoading(true);
-      
       await api.delete(`/api/projects/${id}`);
-      
-      console.log('Project deleted successfully');
-      
-      navigate('/projects/browser');
-      
-    } catch (error) {
-      console.error('Error deleting project:', error);
-      alert('Failed to delete project: ' + (error.response?.data?.error || error.message));
-    } finally {
-      setLoading(false);
+      navigate('/projects');
+    } catch (err) {
+      setError('Failed to delete project');
     }
+    setDeleteDialogOpen(false);
   };
 
   if (loading) return <Typography>Loading...</Typography>;
@@ -440,12 +435,12 @@ function ProjectEdit() {
 
         <Stack direction="row" spacing={2} justifyContent="space-between">
           <Button
-            onClick={handleDelete}
-            disabled={loading}
-            variant="contained" 
             color="error"
+            variant="contained"
+            onClick={() => setDeleteDialogOpen(true)}
+            startIcon={<DeleteIcon />}
           >
-            {loading ? 'Deleting...' : 'Delete Project'}
+            Delete Project
           </Button>
           <Box>
             <Button

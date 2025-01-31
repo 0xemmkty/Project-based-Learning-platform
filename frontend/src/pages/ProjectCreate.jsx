@@ -20,10 +20,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import api from '../services/api';
 
 const ProjectType = {
-  MECHANICAL: 'MECHANICAL',
-  ELECTRICAL: 'ELECTRICAL',
-  SOFTWARE: 'SOFTWARE',
-  ENTREPRENEURSHIP: 'ENTREPRENEURSHIP'
+  ENTREPRENEURSHIP: 'ENTREPRENEURSHIP',
+  INNOVATION: 'INNOVATION',
+  PRODUCT_DEVELOPMENT: 'PRODUCT_DEVELOPMENT'
 };
 
 const SkillLevel = {
@@ -105,7 +104,7 @@ export function ProjectCreate() {
       setError('Please fill in all required fields');
       return;
     }
-
+    alert(JSON.stringify(formData.tags));
     try {
       const formDataToSend = new FormData();
       formDataToSend.append('title', formData.title);
@@ -220,7 +219,7 @@ export function ProjectCreate() {
                 label="Add Tags"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
-                onKeyPress={handleTagInputKeyPress}
+                onKeyDown={handleTagInputKeyPress}
                 fullWidth
                 size="small"
                 helperText="Press Enter to add a tag"

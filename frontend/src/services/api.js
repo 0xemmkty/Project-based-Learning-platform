@@ -1,8 +1,14 @@
 import axios from 'axios';
 
-// 创建一个新的 axios 实例
+// 确保 API_URL 不要重复包含 /api
+const API_URL = process.env.REACT_APP_API_URL ;
+
+console.log('All env variables:', process.env);
+console.log('API URL:', process.env.REACT_APP_API_URL);
+
+
 const api = axios.create({
-  baseURL: 'http://18.117.98.24:5000',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -42,10 +48,7 @@ api.interceptors.response.use(
 export const authAPI = {
   login: async (credentials) => {
     try {
-      // 打印完整的请求 URL
-      const fullUrl = `${api.defaults.baseURL}/api/auth/login`;
-      console.log('Full request URL:', fullUrl);
-      
+      // 这里只需要使用一次 /api 前缀
       const response = await api.post('/api/auth/login', credentials);
       return response;
     } catch (error) {
@@ -60,7 +63,7 @@ export const authAPI = {
   register: async (userData) => {
     try {
       console.log('Sending registration request:', userData);
-      const response = await api.post('/auth/register', userData);
+      const response = await api.post('/api/auth/register', userData);
       console.log('Registration response:', response.data);
       return response.data;
     } catch (error) {
@@ -68,12 +71,12 @@ export const authAPI = {
       throw error.response?.data || { error: 'Registration failed' };
     }
   },
-  logout: () => api.post('/auth/logout')
+  logout: () => api.post('/api/auth/logout')
 };
 
 export const userAPI = {
-  getCurrentUser: () => api.get('/users/me'),
-  updateProfile: (userData) => api.put('/users/profile', userData)
+  getCurrentUser: () => api.get('/api/users/me'),
+  updateProfile: (userData) => api.put('/api/users/profile', userData)
 };
 
 export default api; 

@@ -12,6 +12,7 @@ import ProjectDetail from './pages/ProjectDetail';
 import ProjectEdit from './pages/ProjectEdit';
 import ProjectCreate from './pages/ProjectCreate';
 import ProjectBrowser from './pages/ProjectBrowser';
+import Index from './pages/Dashboard';
 import WebFont from 'webfontloader';
 import NotFound from './pages/NotFound';
 import './styles/global.css';
@@ -58,6 +59,7 @@ function App() {
                 <Route path="/projects/create" element={<ProjectCreate />} />
                 <Route path="/projects/:id" element={<ProjectDetail />} />
                 <Route path="/projects/:id/edit" element={<ProjectEdit />} />
+                <Route path="/index" element={<Index />} />
                 <Route path="/projects/browser" element={<ProjectBrowser />} />
                 <Route 
                   path="/dashboard" 

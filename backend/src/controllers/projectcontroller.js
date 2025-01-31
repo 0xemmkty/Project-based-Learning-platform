@@ -387,7 +387,7 @@ const deleteProjectMedia = async (req, res) => {
 
     // 检查项目是否存在且用户是否有权限
     const project = await prisma.project.findUnique({
-      where: { id: projectId },
+      where: { id: Number(projectId) },
       include: { creator: true }
     });
 
@@ -401,7 +401,7 @@ const deleteProjectMedia = async (req, res) => {
 
     // 检查媒体是否存在
     const media = await prisma.media.findUnique({
-      where: { id: mediaId }
+      where: { id: Number(mediaId) }
     });
 
     if (!media) {
@@ -410,7 +410,7 @@ const deleteProjectMedia = async (req, res) => {
 
     // 删除媒体记录
     await prisma.media.delete({
-      where: { id: mediaId }
+      where: { id: Number(mediaId) }
     });
 
     res.status(200).json({ message: 'Media deleted successfully' });
